@@ -1,4 +1,4 @@
-import React, { useMemo, memo, useRef } from 'react';
+import React, { useMemo, memo, useRef, useEffect } from 'react';
 import useBooking from '../../store/booking';
 import BookingBlock from './BookingBlock';
 import './CalendarBoard.css';
@@ -13,6 +13,7 @@ const minsToTop = (mins) => {
   if (isNaN(mins)) return 0;
   return Math.round((mins / 30) * ROW_H);
 };
+
 const minsToH = (dur) => Math.max(Math.round((parseInt(dur) || 60) / 30 * ROW_H), ROW_H);
 
 // Flatten booking_item from any API shape
@@ -34,16 +35,16 @@ const flattenItems = (bookingList) => {
         id: item.id || `${booking.id}-${Math.random()}`,
         bookingId: booking.id,
         service: item.service || '',
-        startTime: item.startTime || item.start_time || item.start,
-        endTime:item.endTime || item?.end_time ,
-        duration: item.duration || item.duration_minutes || 60, // Try different possible field names
-
         therapistId: String(item.therapist_id || item.staff_id || ''),
         therapistName: item.therapist || item.employee || '',
         membership: !!booking.membership || !!item.membership,
         requested: !!item.is_requested_therapist,
         hasCoupon: !!item.voucher_code,
         paymentStatus: booking.payment_status,
+        startTime: item.start_time || item.startTime,
+        duration: item.duration || item.duration_minutes || 60,
+        customer_name: item.customer_name || item.customerName || booking.customer_name,
+        customer_contact: item.customer_contact || item.customer_phone || booking.customer_contact,
       });
     });
   });
@@ -103,16 +104,50 @@ const TIME_SLOTS = Array.from({ length: TOTAL_ROWS }, (_, i) => {
   };
 });
 
-
 const CalendarBoard = memo(({ therapists = [] }) => {
   const bookings = useBooking((s) => s.bookings);
   const BookingLoading = useBooking((s) => s.BookingLoading);
   const headerRef = useRef(null);
-  const bodyRef = useRef(null);
+  const timeColRef = useRef(null);
+  const scrollAreaRef = useRef(null);
+  const isScrollingRef = useRef(false);
 
-  const onBodyScroll = () => {
-    if (headerRef.current && bodyRef.current)
-      headerRef.current.scrollLeft = bodyRef.current.scrollLeft;
+  // Handle scroll in the main scroll area
+  const handleScroll = (e) => {
+    if (isScrollingRef.current) return;
+    isScrollingRef.current = true;
+    
+    const { scrollTop, scrollLeft } = e.target;
+    
+    // Sync time column vertical scroll
+    if (timeColRef.current && timeColRef.current.scrollTop !== scrollTop) {
+      timeColRef.current.scrollTop = scrollTop;
+    }
+    
+    // Sync header horizontal scroll
+    if (headerRef.current && headerRef.current.scrollLeft !== scrollLeft) {
+      headerRef.current.scrollLeft = scrollLeft;
+    }
+    
+    requestAnimationFrame(() => {
+      isScrollingRef.current = false;
+    });
+  };
+
+  // Handle scroll in time column
+  const handleTimeColScroll = (e) => {
+    if (isScrollingRef.current) return;
+    isScrollingRef.current = true;
+    
+    const { scrollTop } = e.target;
+    
+    if (scrollAreaRef.current && scrollAreaRef.current.scrollTop !== scrollTop) {
+      scrollAreaRef.current.scrollTop = scrollTop;
+    }
+    
+    requestAnimationFrame(() => {
+      isScrollingRef.current = false;
+    });
   };
 
   const { columns, byTherapist } = useMemo(() => {
@@ -138,13 +173,11 @@ const CalendarBoard = memo(({ therapists = [] }) => {
 
   return (
     <div className="cal-board">
-
       {/* ── Column headers ──────────────────────── */}
       <div className="cal-header">
         <div className="cal-time-label">Time</div>
-
         <div className="cal-th-headers" ref={headerRef}>
-          {columns.map((th, idx) => {
+          {columns.map((th) => {
             const count = byTherapist[th._id]?.length || 0;
             const color = avatarColor(th);
             const name = th.alias || th.name || '?';
@@ -158,7 +191,6 @@ const CalendarBoard = memo(({ therapists = [] }) => {
                 <div className="cal-th-avatar" style={{ background: color }}>
                   <span className="cal-th-count">{count}</span>
                 </div>
-
                 <div className="cal-th-info">
                   <div className="cal-th-name">{name}</div>
                   {th.gender && (
@@ -173,9 +205,12 @@ const CalendarBoard = memo(({ therapists = [] }) => {
 
       {/* ── Calendar body ────────────────────────── */}
       <div className="cal-body">
-
-        {/* Fixed time column */}
-        <div className="cal-time-col">
+        {/* Time column - syncs scroll with calendar */}
+        <div 
+          className="cal-time-col" 
+          ref={timeColRef}
+          onScroll={handleTimeColScroll}
+        >
           {TIME_SLOTS.map((slot, i) => (
             <div
               key={slot.raw}
@@ -192,11 +227,11 @@ const CalendarBoard = memo(({ therapists = [] }) => {
           ))}
         </div>
 
-        {/* Scrollable body */}
+        {/* Scrollable calendar body */}
         <div
           className="cal-scroll-area"
-          ref={bodyRef}
-          onScroll={onBodyScroll}
+          ref={scrollAreaRef}
+          onScroll={handleScroll}
         >
           {columns.map((th) => (
             <div
@@ -214,19 +249,25 @@ const CalendarBoard = memo(({ therapists = [] }) => {
               ))}
 
               {/* Booking blocks */}
-              {(byTherapist[th._id] || []).map((item) => (
-                <BookingBlock
-                  key={item.id}
-                  booking={item}
-                  style={{
-                    top: minsToTop(toMins(item.startTime)),
-                    height: minsToH(item.duration),
-                    left: 3,
-                    right: 3,
-                    zIndex: 10,
-                  }}
-                />
-              ))}
+              {(byTherapist[th._id] || []).map((item) => {
+                const topPos = minsToTop(toMins(item.startTime));
+                const heightPos = minsToH(item.duration);
+                
+                return (
+                  <BookingBlock
+                    key={item.id}
+                    booking={item}
+                    style={{
+                      position: 'absolute',
+                      top: topPos,
+                      height: heightPos,
+                      left: 3,
+                      right: 3,
+                      zIndex: 10,
+                    }}
+                  />
+                );
+              })}
 
               {!(byTherapist[th._id]?.length) && (
                 <div className="cal-th-empty">No bookings</div>
@@ -235,7 +276,6 @@ const CalendarBoard = memo(({ therapists = [] }) => {
           ))}
         </div>
       </div>
-
     </div>
   );
 });
