@@ -18,8 +18,8 @@ function App() {
 
   const {
     fetchBookings, fetchTherapists,
-    therapists, bookings,
-    filters, error, clearError, loading,
+    therapists, 
+    filters, error, clearError,
   } = useBooking();
 
   useEffect(() => {
@@ -41,7 +41,6 @@ function App() {
     }
   };
 
-  // Fetch on auth + whenever date changes
   useEffect(() => {
     if (!isAuthenticated) return;
     fetchBookings();

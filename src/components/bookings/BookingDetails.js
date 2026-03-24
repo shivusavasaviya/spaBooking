@@ -41,14 +41,12 @@ const BookingDetails = ({ booking, onEdit, onClose }) => {
 
   if (!booking) return null;
 
-  // ── Extract booking item (clean) ─────────────────
   const items = Array.isArray(booking.booking_item)
     ? booking.booking_item
     : Object.values(booking.booking_item || {}).flat();
 
   const item = items[0] || {};
 
-  // ── Derived values ───────────────────────────────
   const statusKey = booking.status || 'pending';
   const statusStyle = STATUS_STYLE[statusKey] || STATUS_STYLE.pending;
 
@@ -75,7 +73,7 @@ const BookingDetails = ({ booking, onEdit, onClose }) => {
   const serviceName = item.service_name || item.service || booking.service || '—';
   const requests = item.service_request
     ? item.service_request.split(',').map(s => s.trim()).join(', ')
-    : '—';
+    : '--';
 
   const startTime = fmtTime(item.start_time || time);
 
@@ -166,27 +164,27 @@ const BookingDetails = ({ booking, onEdit, onClose }) => {
       <div className="bd-service-card">
         <div className="bd-service-header">
           <span className="bd-service-dur">{duration} Mins</span>
-          <span className="bd-service-name">{serviceName}</span>
+          <span className="bd-service-name">{serviceName|| "--"}</span>
         </div>
 
         <div className="bd-service-row">
           <span className="bd-service-lbl">With:</span>
-          <span className="bd-service-val">{therapistName}</span>
+          <span className="bd-service-val">{therapistName|| "--"}</span>
         </div>
 
         <div className="bd-service-row">
           <span className="bd-service-lbl">At:</span>
-          <span className="bd-service-val">{startTime}</span>
+          <span className="bd-service-val">{startTime|| "--"}</span>
         </div>
 
         <div className="bd-service-row">
           <span className="bd-service-lbl">Using:</span>
-          <span className="bd-service-val">{room_name}</span>
+          <span className="bd-service-val">{room_name|| "--"}</span>
         </div>
 
         <div className="bd-service-row">
           <span className="bd-service-lbl">Requests:</span>
-          <span className="bd-service-val">{requests}</span>
+          <span className="bd-service-val">{requests|| "--"}</span>
         </div>
       </div>
 
@@ -204,43 +202,43 @@ const BookingDetails = ({ booking, onEdit, onClose }) => {
         {created_at && (
           <div className="bd-timeline-row">
             <span className="bd-tl-lbl">Booked on:</span>
-            <span className="bd-tl-val">{fmtDateTime(created_at)}</span>
+            <span className="bd-tl-val">{fmtDateTime(created_at) || "--"}</span>
           </div>
         )}
 
         {cancelled_at && (
           <div className="bd-timeline-row">
             <span className="bd-tl-lbl">Cancelled on:</span>
-            <span className="bd-tl-val">{fmtDateTime(cancelled_at)}</span>
+            <span className="bd-tl-val">{fmtDateTime(cancelled_at)|| "--"}</span>
           </div>
         )}
 
         {cancelled_by && (
           <div className="bd-timeline-row">
             <span className="bd-tl-lbl">Cancelled by:</span>
-            <span className="bd-tl-val">{cancelled_by}</span>
+            <span className="bd-tl-val">{cancelled_by|| "--"}</span>
           </div>
         )}
 
         <div className="bd-timeline-row">
           <span className="bd-tl-lbl">Booked On:</span>
-          <span className="bd-tl-val">{fmtDateTime(booking_created_at)}</span>
+          <span className="bd-tl-val">{fmtDateTime(booking_created_at)|| "--"}</span>
         </div>
         <div className="bd-timeline-row">
           <span className="bd-tl-lbl">Booked By:</span>
-          <span className="bd-tl-val">{user?.name}</span>
+          <span className="bd-tl-val">{user?.name|| "--"}</span>
         </div>
         <div className="bd-timeline-row">
           <span className="bd-tl-lbl">Canceled On:</span>
-          <span className="bd-tl-val">{booking?.cancelled_at}</span>
+          <span className="bd-tl-val">{booking?.cancelled_at|| "--"}</span>
         </div>
         <div className="bd-timeline-row">
           <span className="bd-tl-lbl">Canceled By:</span>
-          <span className="bd-tl-val">{booking?.cancelled_by}</span>
+          <span className="bd-tl-val">{booking?.cancelled_by|| "--"}</span>
         </div>
         <div className="bd-timeline-row">
           <span className="bd-tl-lbl">Source:</span>
-          <span className="bd-tl-val">{source}</span>
+          <span className="bd-tl-val">{source|| "--"}</span>
         </div>
 
       </div>

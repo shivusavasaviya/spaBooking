@@ -68,7 +68,8 @@ const BookingForm = ({ mode, booking, onSuccess, onCancel }) => {
       service: booking.service || '',
       duration: booking.duration || 60,
 
-      roomId: actualRoomId || '',
+      roomId: '',
+      roomItemId: booking.room_id || '',
       roomName: booking.room_name || '',
 
       date: booking.service_at?.split(' ')[0] || '',
@@ -99,7 +100,6 @@ const BookingForm = ({ mode, booking, onSuccess, onCancel }) => {
   }, []);
 
 
-  // ✅ Select existing customer
   const handleSelectCustomer = (customer) => {
     setFormData(prev => ({
       ...prev,
@@ -112,10 +112,9 @@ const BookingForm = ({ mode, booking, onSuccess, onCancel }) => {
     setSearchQuery('');
     setShowCustomerDropdown(false);
     toast.success(`Selected client: ${customer.name}`);
-    setStep(3); // Direct to service selection
+    setStep(3); 
   };
 
-  // ✅ Create new customer
   const handleCreateNewCustomer = async () => {
     setCreatingCustomer(true);
     try {
@@ -143,9 +142,9 @@ const BookingForm = ({ mode, booking, onSuccess, onCancel }) => {
     }
   };
 
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     if (name === 'therapistId') {
       const selected = therapists?.find(t => t.therapist_id == value);
       setFormData(prev => ({
@@ -154,17 +153,24 @@ const BookingForm = ({ mode, booking, onSuccess, onCancel }) => {
         therapistName: selected?.alias || ''
       }));
     }
-    else if (name === 'roomId') {
+     else if (name === 'roomId') {
       const selectedRoom = rooms?.find(r => r.room_id == value);
-      const firstItem = selectedRoom?.items?.[0]; // default to first available item
-
+      const firstItem = selectedRoom?.items?.[0];
       setFormData(prev => ({
         ...prev,
-        roomParentId: value,
-        roomId: firstItem?.item_id || '',
+        roomId: value,                                       
+        roomItemId: String(firstItem?.item_id || ''),        
         roomName: firstItem?.item_name || selectedRoom?.room_name || ''
       }));
-
+    }
+    else if (name === 'roomItemId') {
+      const allItems = rooms?.flatMap(r => r.items || []);
+      const selectedItem = allItems?.find(i => i.item_id == value);
+      setFormData(prev => ({
+        ...prev,
+        roomItemId: value,
+        roomName: selectedItem?.item_name || prev.roomName
+      }));
     }
     else if (name === 'serviceId') {
       const selected = servicesData?.list?.category?.find(s => s.id == value);
@@ -208,16 +214,20 @@ const BookingForm = ({ mode, booking, onSuccess, onCancel }) => {
 
   const formatTime = (time) => `${time}:00`;
 
-  const calculateEndTime = () => {
-    const [hours, minutes] = formData.startTime.split(':').map(Number);
-    const total = hours * 60 + minutes + formData.duration;
-    const endH = Math.floor(total / 60);
-    const endM = total % 60;
-    return `${endH.toString().padStart(2, '0')}:${endM.toString().padStart(2, '0')}:00`;
-  };
+ const calculateEndTime = () => {
+  const [hours, minutes] = formData.startTime.split(':').map(Number);
+  const totalMinutes = (hours * 60) + minutes + parseInt(formData.duration);
+  
+  let endHours = Math.floor(totalMinutes / 60);
+  const endMinutes = totalMinutes % 60;
+  
+  if (endHours >= 24) {
+    endHours = 23;
+    toast.warning('Booking duration extends beyond current day, capped at 23:59');
+  }
+  return `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}:00`;
+};
 
-
-  // ✅ Submit booking with notifications
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -317,6 +327,8 @@ const BookingForm = ({ mode, booking, onSuccess, onCancel }) => {
 
       {step === 3 && (
         <Step3Service
+          mode={mode}
+          booking={booking}
           formData={formData}
           onChange={handleChange}
           onServiceRequest={handleServiceRequest}

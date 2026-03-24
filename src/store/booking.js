@@ -4,7 +4,6 @@ import { logger } from '../services/logger';
 
 const today = new Date().toISOString().split('T')[0];
 
-// YYYY-MM-DD → DD-MM-YYYY
 const toApiDate = (d) => (d ? d.split('-').reverse().join('-') : '');
 
 const useBooking = create((set, get) => ({
@@ -16,6 +15,7 @@ const useBooking = create((set, get) => ({
   selectedBooking: null,
   isPanelOpen:     false,
   loading:         false,
+  BookingLoading:  false,
   error:           null,
 
   filters: {
@@ -30,15 +30,12 @@ const useBooking = create((set, get) => ({
     per_page:    50,
   },
 
-  // ── THERAPISTS ─────────────────────────────────────────
-  // Try multiple param combos since API may differ
   fetchTherapists: async () => {
     set({ loading: true });
     try {
       const { filters } = get();
       const dateApi = toApiDate(filters.date);
 
-      // Try without availability filter first (more permissive)
       const response = await api.get('/therapists', {
         params: {
           outlet:      filters.outlet,
@@ -51,8 +48,6 @@ const useBooking = create((set, get) => ({
       });
 
       const raw = response.data;
-
-      // Try every possible path
       let list =
         raw?.data?.data?.list?.staffs  ||
         raw?.data?.data?.staffs        ||
@@ -69,7 +64,7 @@ const useBooking = create((set, get) => ({
 
   // ── BOOKINGS ───────────────────────────────────────────
   fetchBookings: async () => {
-    set({ loading: true, error: null });
+    set({ loading: true, error: null,BookingLoading:true });
     try {
       const { filters } = get();
       const dateApi = toApiDate(filters.date);
@@ -94,10 +89,10 @@ const useBooking = create((set, get) => ({
         [];
 
       if (!Array.isArray(list)) list = [];
-      set({ bookings: list, loading: false });
+      set({ bookings: list, loading: false,BookingLoading:false });
     } catch (err) {
       logger.error('fetchBookings failed', err);
-      set({ error: err.response?.data?.message || err.message, loading: false });
+      set({ error: err.response?.data?.message || err.message, loading: false ,BookingLoading:false});
     }
   },
 

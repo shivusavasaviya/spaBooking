@@ -28,13 +28,6 @@ export const ROW_HEIGHT = 20;
 export const TOTAL_ROWS = ((END_HOUR - START_HOUR) * 60) / MINUTES_INTERVAL; // = 48
 export const THERAPIST_ROW_HEIGHT = TOTAL_ROWS * ROW_HEIGHT; // 48 * 20 = 960px
 
-// Total slots = 48 (12 hours * 4 slots per hour)
-
-// Height per slot in pixels
-
-// Total height for one therapist
-
-// Time slots array (for display)
 export const TIME_SLOTS = Array.from({ length: TOTAL_ROWS }, (_, i) => {
   const h = Math.floor(i / 2).toString().padStart(2, '0');
   const m = i % 2 === 0 ? '00' : '30';

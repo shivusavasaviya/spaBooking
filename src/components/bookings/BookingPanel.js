@@ -99,10 +99,8 @@ const BookingPanel = () => {
           </div>
         )}
 
-        {/* Loading State */}
         {loading && <LoadingSpinner />}
 
-        {/* Create Mode */}
         {!loading && mode === 'create' && (
           <BookingForm
             onSuccess={handleFormSuccess}
@@ -120,7 +118,6 @@ const BookingPanel = () => {
           />
         )}
 
-        {/* Edit Mode */}
         {!loading && mode === 'edit' && selectedBooking && (
           <BookingForm
             mode={mode}

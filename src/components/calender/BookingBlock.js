@@ -55,6 +55,7 @@ const BookingBlock = memo(({ booking, style }) => {
   const statusKey =booking.status;
   const s = STATUS_STYLE[statusKey] || DEFAULT_STYLE;
   const chips = getChips(booking);
+
   return (
     <div
       className="bk-block"

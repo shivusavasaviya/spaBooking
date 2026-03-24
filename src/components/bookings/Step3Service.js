@@ -10,6 +10,7 @@ const Step3Service = ({
   therapists,
   rooms,
   servicesData,
+  booking
 }) => {
   const {
     register,
@@ -23,7 +24,7 @@ const Step3Service = ({
       duration: formData.duration || '60',
       pax: formData.pax || '1',
       therapistId: formData.therapistId || '',
-      roomId: formData.roomId || '',
+      roomId: String(formData.roomId || ''),
       date: formData.date || new Date().toISOString().split('T')[0],
       startTime: formData.startTime || '09:00',
       source: formData.source || 'Walk-in',
@@ -33,8 +34,18 @@ const Step3Service = ({
   });
 
   const watchedValues = watch();
+  useEffect(() => {
+    if (formData.roomId) {
+      setValue('roomId', String(formData.roomId));
+    }
+  }, [formData.roomId]);
 
-  // Sync form values to parent
+  useEffect(() => {
+    if (formData.serviceId) {
+      setValue('serviceId', String(formData.serviceId));
+    }
+  }, [formData.serviceId]);
+
   useEffect(() => {
     const timeout = setTimeout(() => {
       Object.keys(watchedValues).forEach(key => {
@@ -46,7 +57,6 @@ const Step3Service = ({
     return () => clearTimeout(timeout);
   }, [watchedValues, onChange, formData]);
 
-  // Validation rules
   const validationRules = {
     serviceId: {
       required: 'Please select a service'
@@ -95,14 +105,15 @@ const Step3Service = ({
     }
   };
 
-  // Handle continue with validation
   const handleContinueClick = async () => {
     const isValid = await trigger();
     if (isValid) {
       onContinue();
     }
   };
-  
+  const watchedRoomId = watch('roomId');
+
+  const selectedRoomItems = rooms?.find(r => r.room_id == watchedRoomId)?.items || [];
 
   return (
     <div className="form-step step-3">
@@ -111,7 +122,6 @@ const Step3Service = ({
         <h3>Select Service & Therapist</h3>
       </div>
 
-      {/* Selected Client Info */}
       <div className="selected-client-card">
         <div className="client-avatar">
           <div className="avatar-initial">{formData.clientName?.charAt(0) || '👤'}</div>
@@ -130,7 +140,6 @@ const Step3Service = ({
       {/* Form Card */}
       <div className="form-card">
         <form>
-          {/* Service Selection */}
           <div className="form-group">
             <label>
               <span className="label-icon">💆</span>
@@ -206,30 +215,36 @@ const Step3Service = ({
               )}
               <div className="form-group">
                 <label>Room <span className="required">*</span></label>
-                <select
-                  {...register('roomParentId', { required: 'Please select a room' })}
-                  className={`form-select ${errors.roomParentId ? 'error' : ''}`}
-                  onChange={(e) => {
-                    const selectedRoom = rooms?.find(r => r.room_id == e.target.value);
-                    const firstItem = selectedRoom?.items?.[0];
+                   <select
+                {...register('room_id', { required: 'Please select a therapist' })}
+                className={`form-select ${errors.therapistId ? 'error' : ''}`}
+              >
+                <option value="">Select Room</option>
+                {rooms?.map(t => (
+                  <option key={t.room_id} value={t.room_id}>
+                    {t?.room_name}
+                  </option>
+                ))}
+              </select>
+                {errors.roomId && <span className="error-message">{errors.roomId.message}</span>}
 
-                    setValue('roomParentId', e.target.value);              
-                    setValue('roomId', String(firstItem?.item_id || ''));     
-                    setValue('roomName', firstItem?.item_name || selectedRoom?.room_name || '');
-                  }}
-                >
-                  <option value="">Select Room</option>
-                  {rooms?.map(r => (
-                    <option key={r.room_id} value={r.room_id}>
-                      {r.room_name}
-                    </option>
-                  ))}
-                </select>
-                {errors.roomParentId && <span className="error-text">{errors.roomParentId.message}</span>}
-                {errors.roomId && (
-                  <span className="error-message">{errors.roomId.message}</span>
+                {selectedRoomItems.length > 1 && (
+                  <div style={{ marginTop: 8 }}>
+                    <label>Select Seat</label>
+                    <select
+                      className="form-select"
+                      value={formData.roomItemId || ''}
+                      onChange={(e) => onChange({ target: { name: 'roomItemId', value: e.target.value } })}
+                    >
+                      <option value="">Select Seat</option>
+                      {selectedRoomItems.map(item => (
+                        <option key={item.item_id} value={item.item_id}>{item.item_name}</option>
+                      ))}
+                    </select>
+                  </div>
                 )}
-              </div></div></div>
+              </div>
+            </div></div>
 
           {/* Date & Time Row */}
           <div className="form-row">

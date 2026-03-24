@@ -2,27 +2,17 @@ import React, { useMemo, memo, useRef } from 'react';
 import useBooking from '../../store/booking';
 import BookingBlock from './BookingBlock';
 import './CalendarBoard.css';
+import { avatarColor, toMins } from '../../utils/helper';
 
-const COL_W      = 160;
-const ROW_H      = 30;   
-const TOTAL_ROWS = 48;  
-const avatarColor = (th) => {
-  const g = (th.gender || '').toLowerCase();
-  if (g === 'female' || g === 'f') return '#EC4899';
-  if (g === 'male'   || g === 'm') return '#3B82F6';
-  const POOL = ['#EC4899','#3B82F6','#8B5CF6','#F97316','#14B8A6'];
-  return POOL[parseInt(th.therapist_id || th.id || 0) % POOL.length];
-};
-
-const toMins = (t) => {
-  if (!t) return 0;
-  const [h, m] = String(t).split(':').map(Number);
-  return (h || 0) * 60 + (m || 0);
-};
+const COL_W = 160;
+const ROW_H = 30;
+const TOTAL_ROWS = 48;
 
 // Minutes → px top offset
-const minsToTop = (mins) => Math.round((mins / 30) * ROW_H);
-
+const minsToTop = (mins) => {
+  if (isNaN(mins)) return 0;
+  return Math.round((mins / 30) * ROW_H);
+};
 const minsToH = (dur) => Math.max(Math.round((parseInt(dur) || 60) / 30 * ROW_H), ROW_H);
 
 // Flatten booking_item from any API shape
@@ -32,24 +22,27 @@ const flattenItems = (bookingList) => {
   bookingList.forEach((booking) => {
     const raw = booking.booking_item;
     let arr = Array.isArray(raw) ? raw
-            : raw && typeof raw === 'object' ? Object.values(raw).flat()
-            : [];
+      : raw && typeof raw === 'object' ? Object.values(raw).flat()
+        : [];
     arr.forEach((item) => {
       items.push({
         ...item,
-        user:booking.user,
-        booking_created_at:booking?.booking_created_at,
-        source:booking.source,
-        status:booking?.status
-,
-        id:            item.id              || `${booking.id}-${Math.random()}`,
-        bookingId:     booking.id,
-        service:       item.service_name    || item.service          || '',
-        therapistId:   String(item.therapist_id || item.employee_id  || item.staff_id || ''),
-        therapistName: item.therapist       || item.employee         || '',
-        membership:    !!booking.membership || !!item.membership,
-        requested:     !!item.is_requested_therapist,
-        hasCoupon:     !!item.voucher_code,
+        user: booking.user,
+        booking_created_at: booking?.booking_created_at,
+        source: booking.source,
+        status: booking?.status,
+        id: item.id || `${booking.id}-${Math.random()}`,
+        bookingId: booking.id,
+        service: item.service || '',
+        startTime: item.startTime || item.start_time || item.start,
+        endTime:item.endTime || item?.end_time ,
+        duration: item.duration || item.duration_minutes || 60, // Try different possible field names
+
+        therapistId: String(item.therapist_id || item.staff_id || ''),
+        therapistName: item.therapist || item.employee || '',
+        membership: !!booking.membership || !!item.membership,
+        requested: !!item.is_requested_therapist,
+        hasCoupon: !!item.voucher_code,
         paymentStatus: booking.payment_status,
       });
     });
@@ -76,7 +69,7 @@ const buildColumns = (therapists, items) => {
     }
   });
   if (!Object.keys(map).length) {
-    map['0'] = { _id:'0', _idx:0, therapist_id:'0', name:'Unassigned', alias:'Unassigned', gender:'' };
+    map['0'] = { _id: '0', _idx: 0, therapist_id: '0', name: 'Unassigned', alias: 'Unassigned', gender: '' };
   }
   return Object.values(map).sort((a, b) => a._idx - b._idx);
 };
@@ -87,10 +80,10 @@ const groupItems = (columns, items) => {
   items.forEach((item) => {
     const k = item.therapistId || '0';
     if (map[k] !== undefined) map[k].push(item);
-    else if (map['0'])        map['0'].push(item);
+    else if (map['0']) map['0'].push(item);
   });
   Object.keys(map).forEach((k) => {
-    map[k].sort((a, b) => (a.startTime||'').localeCompare(b.startTime||''));
+    map[k].sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
   });
   return map;
 };
@@ -102,19 +95,20 @@ const TIME_SLOTS = Array.from({ length: TOTAL_ROWS }, (_, i) => {
   const hStr = h.toString().padStart(2, '0');
   const mStr = m.toString().padStart(2, '0');
   const ampm = h < 12 ? 'AM' : 'PM';
-  const h12  = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
   return {
-    label: `${h12.toString().padStart(2,'0')}.${mStr} ${ampm}`,
+    label: `${h12.toString().padStart(2, '0')}.${mStr} ${ampm}`,
     isHour: m === 0,
     raw: `${hStr}:${mStr}`,
   };
 });
 
+
 const CalendarBoard = memo(({ therapists = [] }) => {
-  const bookings  = useBooking((s) => s.bookings);
-  const loading   = useBooking((s) => s.loading);
+  const bookings = useBooking((s) => s.bookings);
+  const BookingLoading = useBooking((s) => s.BookingLoading);
   const headerRef = useRef(null);
-  const bodyRef   = useRef(null);
+  const bodyRef = useRef(null);
 
   const onBodyScroll = () => {
     if (headerRef.current && bodyRef.current)
@@ -122,16 +116,16 @@ const CalendarBoard = memo(({ therapists = [] }) => {
   };
 
   const { columns, byTherapist } = useMemo(() => {
-    const items   = flattenItems(bookings);
+    const items = flattenItems(bookings);
     const columns = buildColumns(therapists, items);
     return { columns, byTherapist: groupItems(columns, items) };
   }, [bookings, therapists]);
 
-  const femaleCount = therapists.filter(t => (t.gender||'').toLowerCase().startsWith('f')).length;
-  const maleCount   = therapists.filter(t => (t.gender||'').toLowerCase().startsWith('m')).length;
-  const fmLabel     = femaleCount || maleCount ? `${femaleCount}F ${maleCount}M` : '';
+  const femaleCount = therapists.filter(t => (t.gender || '').toLowerCase().startsWith('f')).length;
+  const maleCount = therapists.filter(t => (t.gender || '').toLowerCase().startsWith('m')).length;
+  const fmLabel = femaleCount || maleCount ? `${femaleCount}F ${maleCount}M` : '';
 
-  if (loading && !columns.length) {
+  if (BookingLoading) {
     return (
       <div className="cal-loading">
         <div className="cal-loading-spinner" />
@@ -153,7 +147,7 @@ const CalendarBoard = memo(({ therapists = [] }) => {
           {columns.map((th, idx) => {
             const count = byTherapist[th._id]?.length || 0;
             const color = avatarColor(th);
-            const name  = th.alias || th.name || '?';
+            const name = th.alias || th.name || '?';
 
             return (
               <div
@@ -225,10 +219,10 @@ const CalendarBoard = memo(({ therapists = [] }) => {
                   key={item.id}
                   booking={item}
                   style={{
-                    top:    minsToTop(toMins(item.startTime)),
+                    top: minsToTop(toMins(item.startTime)),
                     height: minsToH(item.duration),
-                    left:   3,
-                    right:  3,
+                    left: 3,
+                    right: 3,
                     zIndex: 10,
                   }}
                 />

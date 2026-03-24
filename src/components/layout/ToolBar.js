@@ -18,7 +18,6 @@ const ToolBar = () => {
   const filterRef = useRef(null);
   const searchRef = useRef(null);
 
-  // Close filter panel on outside click
   useEffect(() => {
     const handler = (e) => {
       if (filterRef.current && !filterRef.current.contains(e.target)) {
