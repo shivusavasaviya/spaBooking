@@ -1,0 +1,166 @@
+/* Calendar Board */
+.calendar-board {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Header */
+.calendar-header {
+  display: flex;
+  border-bottom: 2px solid #e5e7eb;
+  background: #f9fafb;
+  flex-shrink: 0;
+}
+
+.time-header {
+  width: 70px;
+  padding: 12px 8px;
+  font-weight: 600;
+  font-size: 12px;
+  text-align: center;
+  border-right: 1px solid #e5e7eb;
+  background: #f9fafb;
+  color: #374151;
+}
+
+.therapists-header {
+  flex: 1;
+  display: flex;
+  overflow-x: auto;
+  gap: 0;
+}
+
+.therapist-name {
+  min-width: 180px;
+  padding: 12px 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-right: 1px solid rgba(255,255,255,0.2);
+  font-weight: 500;
+  font-size: 13px;
+  position: relative;
+}
+
+.therapist-icon {
+  font-size: 14px;
+}
+
+.therapist-name-text {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.booking-badge {
+  background: rgba(255,255,255,0.3);
+  border-radius: 12px;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* Calendar Body */
+.calendar-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.therapists-grid {
+  flex: 1;
+  overflow: auto;
+}
+
+/* Therapist Row */
+.therapist-row {
+  position: relative;
+  background: white;
+  border-right: 1px solid #e5e7eb;
+}
+
+.therapist-row:hover {
+  background: #fafafa;
+}
+
+.therapist-row.selected {
+  background: #fef3c7;
+}
+
+/* Time slots background */
+.time-slots-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.time-slot-line {
+  border-bottom: 1px solid #f0f0f0;
+  width: 100%;
+  position: absolute;
+}
+
+/* Booking Block */
+.booking-block {
+  transition: transform 0.1s ease;
+}
+
+.booking-block:hover {
+  transform: scale(1.02);
+  z-index: 20;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.booking-time {
+  font-weight: bold;
+}
+
+.booking-customer {
+  font-weight: 500;
+}
+
+.booking-service {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Empty state */
+.empty-therapist {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #9ca3af;
+  font-size: 12px;
+  font-style: italic;
+}
+
+/* Scrollbar */
+.therapists-grid::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.therapists-grid::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.therapists-grid::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.therapists-grid::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}

@@ -1,0 +1,62 @@
+.bk-block {
+  border-radius: 5px;
+  padding: 4px 6px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: filter 0.12s;
+  box-sizing: border-box;
+}
+.bk-block:hover { filter: brightness(0.95); }
+
+.bk-service {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #1a1a1a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+  margin-bottom: 1px;
+}
+
+.bk-phone {
+  font-size: 9.5px;
+  color: #9ca3af;
+  text-decoration: line-through;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 1px;
+}
+
+.bk-name {
+  font-size: 10px;
+  font-weight: 600;
+  color: #374151;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 3px;
+}
+
+.bk-chips {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+.bk-chip {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8.5px;
+  font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+}
+.bk-chip-t { background: #16a34a; }
+.bk-chip-h { background: #dc2626; }
+.bk-chip-n { background: #6b7280; }
