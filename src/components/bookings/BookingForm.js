@@ -92,7 +92,7 @@ const BookingForm = ({ mode, booking, onSuccess, onCancel }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const [creatingCustomer, setCreatingCustomer] = useState(false);
-  const [filteredCustomers, setFilteredCustomers] = useState([]);
+  const [filteredCustomers] = useState([]);
 
   useEffect(() => {
     fetchAllDropdownData();

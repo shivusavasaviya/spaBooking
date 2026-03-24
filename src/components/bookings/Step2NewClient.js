@@ -6,7 +6,6 @@ const Step2NewClient = ({ formData, onChange, onBack, onCreate, creating }) => {
     register,
     handleSubmit,
     formState: { errors },
-    watch,
     setValue
   } = useForm({
     defaultValues: {
@@ -18,7 +17,6 @@ const Step2NewClient = ({ formData, onChange, onBack, onCreate, creating }) => {
     }
   });
 
-  const watchedValues = watch();
   const isFirstRender = useRef(true);
 
   // ✅ Sync from parent to form (only when parent data changes externally)

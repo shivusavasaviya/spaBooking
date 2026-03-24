@@ -63,7 +63,6 @@ const BookingDetails = ({ booking, onEdit, onClose }) => {
     note,
     notes,
     source,
-    service_at,
     created_at,
     cancelled_at,
     cancelled_by,

@@ -18,12 +18,6 @@ class Logger {
     this.logs.unshift(entry);
     if (this.logs.length > this.maxLogs) this.logs.pop();
 
-    const styles = {
-      DEBUG: 'color: gray',
-      INFO: 'color: blue',
-      WARN: 'color: orange',
-      ERROR: 'color: red; font-weight: bold'
-    };
   }
 
   debug(message, data) { this._log(LOG_LEVELS.DEBUG, message, data); }

@@ -13,7 +13,6 @@ const Step3Service = ({
 }) => {
   const {
     register,
-    handleSubmit,
     formState: { errors },
     setValue,
     watch,
