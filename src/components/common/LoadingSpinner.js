@@ -1,5 +1,4 @@
 import React from 'react';
-import { FaSpinner } from 'react-icons/fa';
 
 const LoadingSpinner = ({ 
   size = 40, 
@@ -16,12 +15,8 @@ const LoadingSpinner = ({
       gap: '12px',
       minHeight: '200px'
     }}>
-      <FaSpinner 
-        size={size} 
-        color={color} 
-        style={{ animation: 'spin 1s linear infinite' }}
-      />
-      {text && <p style={{ color: '#6b7280', fontSize: '14px', margin: 0 }}>{text}</p>}
+   
+      {text && <p style={{ color: '#6b7280', fontSize: '14px', margin: 0 }}>{text || "Loading ...."}</p>}
       
       <style>{`
         @keyframes spin {
